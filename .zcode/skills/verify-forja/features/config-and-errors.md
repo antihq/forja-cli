@@ -29,12 +29,14 @@ Preconditions:
 - **File provides the key.** Write `$RUN_DIR/file.yaml` containing
   `api_key: from-file`. Direct pattern with all four `FORJA_*` unset
   (`env -u FORJA_API_KEY -u FORJA_ENDPOINT -u FORJA_TEAM -u FORJA_FORMAT ...`)
-  and `--config "$RUN_DIR/file.yaml" whoami`: exit `0`; `.requests` shows
-  `authorization: "Bearer from-file"`.
-- **Env beats file.** Same config plus `FORJA_API_KEY=from-env`: exit `0`;
-  `.requests` shows `Bearer from-env`.
-- **Flag beats env.** Same plus `--api-key from-flag`: exit `0`; `.requests`
-  shows `Bearer from-flag`.
+  and `--config "$RUN_DIR/file.yaml" whoami`. The stub accepts only
+  `forja-verify-key`, so the CLI exits `1` with
+  `forja: Unauthenticated. (HTTP 401)`. The precedence proof is the request:
+  `.requests` shows `authorization: "Bearer from-file"`.
+- **Env beats file.** Same config plus `FORJA_API_KEY=from-env`; `.requests`
+  shows `Bearer from-env`.
+- **Flag beats env.** Same plus `--api-key from-flag`; `.requests` shows
+  `Bearer from-flag`.
 - **Missing key.** Direct pattern with a scratch config lacking `api_key`
   and all `FORJA_*` unset: `exit=1`, stderr
   `forja: api_key is required. Set api_key in ~/.forja.yaml, or FORJA_API_KEY, or --api-key`,
