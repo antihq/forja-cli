@@ -24,7 +24,7 @@ jobs:
         with:
           go-version-file: go.mod
       - name: Build
-        run: go build -trimpath -ldflags "-s -w -X main.version=${GITHUB_REF_NAME}" -o "forja-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}"
+        run: go build -trimpath -ldflags "-s -w -X github.com/antihq/forja-cli/cmd.version=${GITHUB_REF_NAME}" -o "forja-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}" ./cmd/forja
         env:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}

@@ -13,7 +13,7 @@ EVIDENCE_DIR="$SKILL_DIR/evidence/$RUN_ID"
 mkdir -p "$RUN_DIR" "$EVIDENCE_DIR"
 
 echo "building forja..." >&2
-(cd "$REPO_DIR" && go build -o "$RUN_DIR/forja" .)
+(cd "$REPO_DIR" && go build -o "$RUN_DIR/forja" ./cmd/forja)
 
 STUB_LOG="$RUN_DIR/stub.log"
 python3 "$SKILL_DIR/helpers/stub_api.py" \

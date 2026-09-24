@@ -12,7 +12,7 @@ The script installs a static binary to `~/.local/bin` (or `/usr/local/bin` when 
 
 Windows: download `forja-windows-amd64.exe` from the [releases page](https://github.com/antihq/forja-cli/releases) and put it on your `PATH`.
 
-With Go installed you can also run `go install github.com/antihq/forja-cli@latest`.
+With Go installed you can also run `go install github.com/antihq/forja-cli/cmd/forja@latest`.
 
 ## Getting an API key
 
