@@ -4,7 +4,10 @@
 Serves deterministic fixtures under /api/v1, requires bearer auth, logs every
 request as one JSON line, and can inject a fixed failure for error-path cases.
 Deployments created via POST /sites/<id>/deploy are kept in memory and show up
-in later reads of /sites/<id>/deployments and /deployments/<id>.
+in later reads of /sites/<id>/deployments and /deployments/<id>. Sites created
+via POST /servers/<id>/sites are kept in memory too, together with their
+pending deployment (unless --deploy-key semantics apply), so a second read
+proves the side effect.
 
 Usage:
   python3 stub_api.py --port 0 --api-key forja-verify-key --log /tmp/stub.log \
@@ -61,6 +64,11 @@ api_key = "forja-verify-key"
 fail_status = None
 fail_body = ""
 next_dep_number = 200
+next_site_number = 4
+
+
+def now():
+    return datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -80,6 +88,79 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(data)))
         self.end_headers()
         self.wfile.write(data)
+
+    def _create_site(self, server_id, body):
+        global next_site_number, next_dep_number
+
+        server = next((s for s in SERVERS if s["id"] == server_id), None)
+        if server is None:
+            return self._send(404, {"message": "Server not found."})
+
+        try:
+            data = json.loads(body) if body else {}
+        except ValueError:
+            data = {}
+        if not isinstance(data, dict):
+            data = {}
+
+        errors = {}
+        address = data.get("address", "")
+        if not address:
+            errors["address"] = ["El campo address es obligatorio."]
+        elif any(s.get("address", s.get("name")) == address for s in SITES):
+            errors["address"] = ["El campo address ya ha sido tomado."]
+        if not data.get("php_version"):
+            errors["php_version"] = ["El campo php version es obligatorio."]
+        if not data.get("type"):
+            errors["type"] = ["El campo type es obligatorio."]
+        if errors:
+            fields = sorted(errors)
+            message = errors[fields[0]][0]
+            if len(fields) > 1:
+                message += " (and %d more errors)" % (len(fields) - 1)
+            return self._send(422, {"message": message, "errors": errors})
+
+        with lock:
+            site_id = "site-%02d" % next_site_number
+            next_site_number += 1
+            deployment = None
+            if not data.get("use_deploy_key"):
+                deployment = {
+                    "id": "dep-%d" % next_dep_number,
+                    "site_id": site_id,
+                    "status": "pending",
+                    "commit": None,
+                    "created_at": now(),
+                }
+                next_dep_number += 1
+
+        site = {
+            "id": site_id,
+            "server_id": server["id"],
+            "address": address,
+            "url": "https://" + address,
+            "type": data["type"],
+            "php_version": data["php_version"],
+            "tls_setting": "auto",
+            "repository_url": data.get("repository_url") or None,
+            "repository_branch": data.get("repository_branch") or None,
+            "zero_downtime_deployment": bool(data.get("zero_downtime_deployment", True)),
+            "installed_at": None,
+            "created_at": now(),
+        }
+        if deployment is not None:
+            site["deployment"] = deployment
+        else:
+            site["deploy_key_public"] = (
+                "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIF0rjaVerifyKey" + site_id + " forja-verify"
+            )
+
+        with lock:
+            SITES.append(site)
+            if deployment is not None:
+                DEPLOYMENTS.setdefault(site_id, []).append(deployment)
+
+        return self._send(201, site)
 
     def _handle(self):
         global next_dep_number
@@ -131,6 +212,9 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(404, {"message": "Server not found."})
             return self._send(200, server)
 
+        if len(rest) == 3 and rest[0] == "servers" and rest[2] == "sites" and method == "POST":
+            return self._create_site(rest[1], body)
+
         if rest == ["sites"] and method == "GET":
             server_id = query.get("server_id", "")
             matches = [s for s in SITES if not server_id or s["server_id"] == server_id]
@@ -150,8 +234,7 @@ class Handler(BaseHTTPRequestHandler):
                     "site_id": site["id"],
                     "status": "pending",
                     "commit": None,
-                    "created_at": datetime.datetime.now(datetime.timezone.utc)
-                        .strftime("%Y-%m-%dT%H:%M:%SZ"),
+                    "created_at": now(),
                 }
                 next_dep_number += 1
                 with lock:
