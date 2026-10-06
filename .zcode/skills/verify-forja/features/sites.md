@@ -16,6 +16,7 @@ zero-downtime deployments.
 - `sites-create-duplicate` fails with the 422 message plus the flattened `errors`.
 - `sites-deploy` POSTs to the deploy path and renders the new pending deployment.
 - `sites-deploy-missing` fails with 404 for an unknown site id and creates nothing.
+- Deployment settings (`settings get`, `settings set`) live in [sites-settings.md](./sites-settings.md).
 
 ## How to get to it (user POV)
 
@@ -79,9 +80,9 @@ Preconditions:
 
 ## Gotchas
 
-- `sites create` and `sites deploy` are the mutations, and the only POSTs,
-  in the CLI. A mutation proof without the POST line in `.requests` is not
-  a proof.
+- `sites create` and `sites deploy` are the POSTs and `sites settings set`
+  is the PATCH. A mutation proof without the matching line in `.requests`
+  is not a proof.
 - Created ids depend on session state. The first create in a session makes
   `site-04`, the second `site-05`; created deployments and deploys draw
   from one counter, so the first of either in a session is `dep-200`, the

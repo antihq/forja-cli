@@ -7,7 +7,11 @@ Deployments created via POST /sites/<id>/deploy are kept in memory and show up
 in later reads of /sites/<id>/deployments and /deployments/<id>. Sites created
 via POST /servers/<id>/sites are kept in memory too, together with their
 pending deployment (unless --deploy-key semantics apply), so a second read
-proves the side effect.
+proves the side effect. Deployment settings live per site as well:
+GET /sites/<id>/settings returns the seeded or defaulted document in contract
+key order, PATCH /sites/<id>/settings merges it for real (present fields
+replace their stored value wholesale, absent fields stay, retention null or
+out of 1-50 is a 422, unknown sites 404 like Laravel's model not found).
 
 Usage:
   python3 stub_api.py --port 0 --api-key forja-verify-key --log /tmp/stub.log \
@@ -58,6 +62,39 @@ DEPLOYMENTS = {
                  "commit": None, "created_at": "2026-04-02T11:00:00Z"}],
 }
 
+SETTINGS_KEY_ORDER = [
+    "site_id", "zero_downtime_deployment", "deploy_notification_email",
+    "deployment_releases_retention", "shared_directories", "shared_files",
+    "writeable_directories", "hook_before_updating_repository",
+    "hook_after_updating_repository", "hook_before_making_current",
+    "hook_after_making_current",
+]
+
+
+def default_settings(site_id):
+    return {
+        "site_id": site_id,
+        "zero_downtime_deployment": True,
+        "deploy_notification_email": None,
+        "deployment_releases_retention": 10,
+        "shared_directories": ["storage"],
+        "shared_files": [".env"],
+        "writeable_directories": [],
+        "hook_before_updating_repository": "",
+        "hook_after_updating_repository": "",
+        "hook_before_making_current": "",
+        "hook_after_making_current": "",
+    }
+
+
+SETTINGS = {
+    "site-01": default_settings("site-01"),
+    "site-02": dict(default_settings("site-02"), deployment_releases_retention=30,
+                    deploy_notification_email="ops@acme.test",
+                    shared_directories=["storage", "public"]),
+    "site-03": default_settings("site-03"),
+}
+
 lock = threading.Lock()
 log_file = None
 api_key = "forja-verify-key"
@@ -79,6 +116,9 @@ class Handler(BaseHTTPRequestHandler):
         self._handle()
 
     def do_POST(self):
+        self._handle()
+
+    def do_PATCH(self):
         self._handle()
 
     def _send(self, status, payload):
@@ -157,10 +197,53 @@ class Handler(BaseHTTPRequestHandler):
 
         with lock:
             SITES.append(site)
+            settings = default_settings(site_id)
+            settings["zero_downtime_deployment"] = site["zero_downtime_deployment"]
+            SETTINGS[site_id] = settings
             if deployment is not None:
                 DEPLOYMENTS.setdefault(site_id, []).append(deployment)
 
         return self._send(201, site)
+
+    def _settings_document(self, site_id):
+        with lock:
+            stored = SETTINGS.get(site_id, default_settings(site_id))
+            return {key: stored.get(key) for key in SETTINGS_KEY_ORDER}
+
+    def _update_settings(self, site_id, body):
+        try:
+            data = json.loads(body) if body else {}
+        except ValueError:
+            data = None
+        if not isinstance(data, dict):
+            return self._send(422, {"message": "The settings body must be a json object."})
+
+        errors = {}
+        if "deployment_releases_retention" in data:
+            value = data["deployment_releases_retention"]
+            if isinstance(value, bool) or not isinstance(value, int):
+                errors["deployment_releases_retention"] = [
+                    "El campo deployment releases retention debe ser un entero."]
+            elif value < 1:
+                errors["deployment_releases_retention"] = [
+                    "El campo deployment releases retention debe ser al menos 1."]
+            elif value > 50:
+                errors["deployment_releases_retention"] = [
+                    "El campo deployment releases retention no debe ser mayor que 50."]
+        if errors:
+            return self._send(422, {"message": errors["deployment_releases_retention"][0],
+                                    "errors": errors})
+
+        with lock:
+            stored = SETTINGS.setdefault(site_id, default_settings(site_id))
+            for key in ("deploy_notification_email", "shared_directories", "shared_files",
+                        "writeable_directories", "hook_before_updating_repository",
+                        "hook_after_updating_repository", "hook_before_making_current",
+                        "hook_after_making_current", "deployment_releases_retention"):
+                if key in data:
+                    stored[key] = data[key]
+
+        return self._send(200, self._settings_document(site_id))
 
     def _handle(self):
         global next_dep_number
@@ -221,6 +304,13 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(200, {"data": matches})
 
         if len(rest) >= 2 and rest[0] == "sites":
+            if len(rest) == 3 and rest[2] == "settings" and method in ("GET", "PATCH"):
+                if not any(s["id"] == rest[1] for s in SITES):
+                    return self._send(404, {"message": "No query results for model [App\\Models\\Site] %s." % rest[1]})
+                if method == "GET":
+                    return self._send(200, self._settings_document(rest[1]))
+                return self._update_settings(rest[1], body)
+
             site = next((s for s in SITES if s["id"] == rest[1]), None)
             if site is None:
                 return self._send(404, {"message": "Site not found."})
