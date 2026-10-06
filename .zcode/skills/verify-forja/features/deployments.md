@@ -45,7 +45,8 @@ Preconditions:
   non-empty `.requests` means the guard broke.
 - `deployments get` looks up the id across all sites in the stub; it does
   not need `--site`.
-- After a `sites deploy` in the same session the new deployment appears in
-  that site's list — expected session state, not pollution.
+- After a `sites deploy` (or a `sites create` without `--deploy-key`) in
+  the same session the new deployment appears in that site's list —
+  expected session state, not pollution.
 - Null and missing fields render as `-` in tables; assert on `--format json`
   when the difference between null and absent matters.

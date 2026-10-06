@@ -13,8 +13,8 @@ entry point is incomplete when the feature file lists others.
   (`./forja`, `./forja-cli`).
 - Never point the CLI at the default endpoint `https://forja.antihq.com` or
   any instance this run did not start. The default is production when no env
-  var, config file, or flag sets an endpoint, and `sites deploy` triggers a
-  real deployment.
+  var, config file, or flag sets an endpoint, and `sites create` and
+  `sites deploy` change real state there.
 - The stub requires `Authorization: Bearer forja-verify-key` and logs every
   request (method, path, query, authorization, team, body) to `$STUB_LOG`.
 - Fixtures (per session, in-memory): servers `srv-01` (web-1), `srv-02`

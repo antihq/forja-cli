@@ -66,13 +66,14 @@ $ forja deployments list --site site-03 --format json
 | `forja servers get <id>` | show one server |
 | `forja sites list [--server <id>]` | list sites, optionally for one server |
 | `forja sites get <id>` | show one site |
+| `forja sites create [flags]` | create a site on a server |
 | `forja sites deploy <id>` | trigger a deployment |
 | `forja deployments list --site <id>` | list deployments for a site |
 | `forja deployments get <id>` | show one deployment |
 
 </details>
 
-`--format json` prints indented json on every api command. `sites deploy` is the only command that changes anything. it tells Forja to start a deployment and prints the new one with status `pending`. `--team` targets another team you belong to. without it, forja acts on your personal team.
+`--format json` prints indented json on every api command. `sites create` and `sites deploy` are the commands that change anything. `sites create` makes a new site on a server and prints it. `sites deploy` tells Forja to start a deployment and prints the new one with status `pending`. `--team` targets another team you belong to. without it, forja acts on your personal team.
 
 ## configuration
 
