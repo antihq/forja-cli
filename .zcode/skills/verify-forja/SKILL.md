@@ -15,8 +15,9 @@ with deterministic fixtures and a request log.
 **Safety rule:** never drive the default endpoint `https://forja.antihq.com`
 or any endpoint this run did not start. The default is production, so a CLI
 run with no `FORJA_ENDPOINT`, config file, or flag reaches it, and
-`sites create` and `sites deploy` would change real state (a created site, a
-triggered deployment). The stub started by `launch.sh` is the only sanctioned
+`sites create`, `sites deploy`, and `sites settings set` would change real
+state (a created site, a triggered deployment, a changed settings
+document). The stub started by `launch.sh` is the only sanctioned
 target.
 
 ## Launch
@@ -88,8 +89,12 @@ precedence, so the request log tells the whole story.
 Stub fixtures to drive against: servers `srv-01` (web-1), `srv-02` (db-1);
 sites `site-01` (acme.com, srv-01), `site-02` (staging.acme.com, srv-01),
 `site-03` (intranet.corp, srv-02); seeded deployments `dep-100` (site-01,
-success, commit a1b2c3) and `dep-105` (site-03, pending, null commit). The
-first `sites create` in a session creates `site-04`, the next `site-05`, and
+success, commit a1b2c3) and `dep-105` (site-03, pending, null commit).
+Every site has a settings document in contract key order: creation defaults
+(retention 10, null email, `["storage"]`, `[".env"]`, empty hooks) except
+site-02, seeded with retention 30, email `ops@acme.test`, and shared
+directories `["storage", "public"]`. The first `sites create` in a session
+creates `site-04`, the next `site-05`, and
 so on; a created site without `--deploy-key` also gets a pending deployment.
 Created deployments and deploys draw from one counter: the first of either
 in a session is `dep-200`, the next `dep-201`, and so on; all are visible to
@@ -109,12 +114,16 @@ Proof standards:
 - Rendered output alone never proves driving. A server table proves the CLI
   renders; the `.requests` file proves it called `GET /api/v1/servers` with
   the right headers. Cite both.
-- Mutations (`sites create` and `sites deploy`, the two POSTs in the CLI)
-  need three views: the transcript (exit 0, the created site or the new
-  deployment with status `pending`), the `.requests` file
-  (`POST /api/v1/servers/<id>/sites` or `POST /api/v1/sites/<id>/deploy`),
+- Mutations (`sites create` and `sites deploy`, the POSTs, and
+  `sites settings set`, the PATCH)
+  need three views: the transcript (exit 0, the created site, the new
+  deployment with status `pending`, or the merged settings document), the
+  `.requests` file
+  (`POST /api/v1/servers/<id>/sites`, `POST /api/v1/sites/<id>/deploy`, or
+  `PATCH /api/v1/sites/<id>/settings` with only the changed keys in the body),
   and a second read showing the side effect (`deployments list --site <id>`
-  now contains the new id, or `sites list` the new site).
+  now contains the new id, `sites list` the new site, or `sites settings get`
+  the merged values).
 - Error cases must show the message, `exit=1`, and no cobra usage dump
   (the root command sets `SilenceUsage`).
 - Empty results print `No results.` — drive at least one empty state.

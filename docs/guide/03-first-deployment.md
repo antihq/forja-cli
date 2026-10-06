@@ -54,7 +54,7 @@ ID       SITE_ID  STATUS   COMMIT  CREATED_AT
 dep-200  site-02  pending  -       2026-09-24T01:36:29Z
 ```
 
-The command returns at once. The new deployment sits at status `pending` with no commit, printed as `-`. There is no confirmation prompt. `sites create` and `sites deploy` are the forja commands that change anything.
+The command returns at once. The new deployment sits at status `pending` with no commit, printed as `-`. There is no confirmation prompt. `sites create`, `sites deploy`, and `sites settings set` are the forja commands that change anything.
 
 ## Watch the deployment
 

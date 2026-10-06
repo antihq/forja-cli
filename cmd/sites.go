@@ -106,7 +106,7 @@ func newSitesCommand(rt *runtime) *cobra.Command {
 	create.Flags().StringVar(&branch, "branch", "", "repository branch to deploy")
 	create.Flags().BoolVar(&deployKey, "deploy-key", false, "mint a deploy key instead of starting the first deploy")
 
-	command.AddCommand(list, get, deploy, create)
+	command.AddCommand(list, get, deploy, create, newSitesSettingsCommand(rt))
 
 	return command
 }

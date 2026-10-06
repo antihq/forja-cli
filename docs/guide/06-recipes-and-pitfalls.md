@@ -53,9 +53,22 @@ forja deployments get <dep-id>                # poll until finished
 curl -fsS https://soplon.antihq.com           # the actual proof
 ```
 
+### Change deployment settings without SSH
+
+The settings document is reachable from a script, so a hook or a retention change needs no browser and no SSH. `@scripts/build.sh` reads the hook body from the file in your checkout. A set never deploys, so the deploy comes after it, and `&&` keeps the deploy from firing if the set failed:
+
+```bash
+forja sites settings set site-02 --hook-before-making-current @scripts/build.sh && forja sites deploy site-02
+```
+
+Read the result first with `forja sites settings get site-02` — the full document prints as json. Check what the deploy did with `forja deployments get <dep-id>`.
+
 ## The pitfalls
 
-- **`sites create` and `sites deploy` fire with no confirmation.** Both POST at once, against whatever endpoint the file, the environment, and the flags resolve to. Check `--endpoint` or your config before you script them.
+- **Settings changes apply on the NEXT deploy.** `sites settings set` only writes the document; it never triggers a deployment, and a running deploy does not pick the change up. The loop is `set`, then `sites deploy`.
+- **Retention is never null.** The server keeps an integer release count, so clearing it is not a thing: `--stdin '{"deployment_releases_retention":null}'` fails with `forja: El campo deployment releases retention debe ser un entero.; deployment_releases_retention: El campo deployment releases retention debe ser un entero. (HTTP 422)`. Omit `--retention` to leave it alone, or pass a number from 1 to 50.
+- **A pending-uninstall site refuses settings changes.** A site requested for uninstall fails the manage gate on both settings commands: `forja: Esta acción no está autorizada. (HTTP 403)`.
+- **`sites create` and `sites deploy` fire with no confirmation.** Both POST at once, `sites settings set` PATCHes at once, against whatever endpoint the file, the environment, and the flags resolve to. Check `--endpoint` or your config before you script them.
 - **The API key is shown once.** Forja displays it under Settings > API when you generate it. Regenerating invalidates the old key.
 - **Tables hide columns.** A table prints only the first 6 keys of the first row and drops the rest. Use `--format json` when a response has more keys.
 - **Environment variables leak into one-off commands.** An exported `FORJA_FORMAT` or `FORJA_ENDPOINT` shapes every call in that shell. A flag wins, but only for the call you pass it to. `--config` swaps the whole file.
