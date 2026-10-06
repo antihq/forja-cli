@@ -68,12 +68,14 @@ $ forja deployments list --site site-03 --format json
 | `forja sites get <id>` | show one site |
 | `forja sites create [flags]` | create a site on a server |
 | `forja sites deploy <id>` | trigger a deployment |
+| `forja sites settings get <id>` | show a site's deployment settings |
+| `forja sites settings set <id> [flags]` | change deployment settings, applied on the next deploy |
 | `forja deployments list --site <id>` | list deployments for a site |
 | `forja deployments get <id>` | show one deployment |
 
 </details>
 
-`--format json` prints indented json on every api command. `sites create` and `sites deploy` are the commands that change anything. `sites create` makes a new site on a server and prints it. `sites deploy` tells Forja to start a deployment and prints the new one with status `pending`. `--team` targets another team you belong to. without it, forja acts on your personal team.
+`--format json` prints indented json on every api command. `sites create`, `sites deploy`, and `sites settings set` are the commands that change anything. `sites create` makes a new site on a server and prints it. `sites deploy` tells Forja to start a deployment and prints the new one with status `pending`. `sites settings set` patches a site's deployment settings: a flag you pass replaces its stored value, a flag you leave off changes nothing, and nothing deploys — the change applies on the site's next deploy. Both settings commands print the settings document as json unless you pass `--format table`. `--team` targets another team you belong to. without it, forja acts on your personal team.
 
 ## configuration
 
