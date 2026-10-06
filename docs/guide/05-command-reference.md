@@ -24,7 +24,7 @@ Every command accepts these flags:
 | --- | --- | --- |
 | `--api-key` | Forja personal API key | |
 | `--config` | Config file | `~/.forja.yaml` |
-| `--endpoint` | Forja base URL | `http://127.0.0.1:8000` |
+| `--endpoint` | Forja base URL | `https://forja.antihq.com` |
 | `--format` | Output format, table or json | `table` |
 | `--team` | Team id | your personal team |
 | `-h`, `--help` | Help for the command | |
@@ -36,7 +36,7 @@ The config file is `~/.forja.yaml`, or the file that `--config` names. Settings 
 | Setting | Config key | Env var | Flag | Default |
 | --- | --- | --- | --- | --- |
 | API key | `api_key` | `FORJA_API_KEY` | `--api-key` | |
-| Endpoint | `endpoint` | `FORJA_ENDPOINT` | `--endpoint` | `http://127.0.0.1:8000` |
+| Endpoint | `endpoint` | `FORJA_ENDPOINT` | `--endpoint` | `https://forja.antihq.com` |
 | Team | `team` | `FORJA_TEAM` | `--team` | your personal team |
 | Format | `format` | `FORJA_FORMAT` | `--format` | `table` |
 

@@ -59,7 +59,7 @@ The flag beats the environment variable, and the table returns.
 
 ## Defaults, other files, and the team
 
-Two settings have defaults that apply when no source sets them. The endpoint is `http://127.0.0.1:8000` and the format is `table`. A trailing slash on the endpoint is trimmed.
+Two settings have defaults that apply when no source sets them. The endpoint is `https://forja.antihq.com` and the format is `table`. A trailing slash on the endpoint is trimmed.
 
 `--config` names a file for one call. The named file replaces `~/.forja.yaml` as the base.
 

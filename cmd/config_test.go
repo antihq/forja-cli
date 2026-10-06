@@ -42,8 +42,8 @@ func TestResolveSettingsDefaultsAndMissingFile(t *testing.T) {
 		t.Fatalf("resolveSettings: %v", err)
 	}
 
-	if s.Endpoint != defaultEndpoint {
-		t.Errorf("endpoint = %q, want %q", s.Endpoint, defaultEndpoint)
+	if s.Endpoint != "https://forja.antihq.com" {
+		t.Errorf("endpoint = %q, want https://forja.antihq.com", s.Endpoint)
 	}
 	if s.Format != defaultFormat {
 		t.Errorf("format = %q, want %q", s.Format, defaultFormat)

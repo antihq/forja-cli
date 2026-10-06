@@ -12,8 +12,9 @@ indented JSON. The Forja server is not in this repo, so verification drives
 the freshly built binary against a local stub API (`helpers/stub_api.py`)
 with deterministic fixtures and a request log.
 
-**Safety rule:** never drive the default endpoint `http://127.0.0.1:8000` or
-any endpoint this run did not start. It may be a real Forja instance, and
+**Safety rule:** never drive the default endpoint `https://forja.antihq.com`
+or any endpoint this run did not start. The default is production, so a CLI
+run with no `FORJA_ENDPOINT`, config file, or flag reaches it, and
 `sites deploy` would trigger a real deployment. The stub started by
 `launch.sh` is the only sanctioned target.
 

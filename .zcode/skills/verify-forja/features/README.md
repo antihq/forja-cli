@@ -11,8 +11,10 @@ entry point is incomplete when the feature file lists others.
   source the printed `session.env`. Drive only `$FORJA_BIN` (built fresh by
   the launcher) — never the stale binaries sitting in the repo root
   (`./forja`, `./forja-cli`).
-- Never point the CLI at the default endpoint `http://127.0.0.1:8000` or any
-  instance this run did not start; `sites deploy` triggers a real deployment.
+- Never point the CLI at the default endpoint `https://forja.antihq.com` or
+  any instance this run did not start. The default is production when no env
+  var, config file, or flag sets an endpoint, and `sites deploy` triggers a
+  real deployment.
 - The stub requires `Authorization: Bearer forja-verify-key` and logs every
   request (method, path, query, authorization, team, body) to `$STUB_LOG`.
 - Fixtures (per session, in-memory): servers `srv-01` (web-1), `srv-02`

@@ -22,13 +22,16 @@ Errors must name the exact missing source and never dump cobra usage.
 
 Preconditions:
 
-- Session sourced; doctor passes. These cases use the direct pattern —
-  drive.sh pins the key/endpoint, which would hide the very thing under
-  test. Write scratch configs into `$RUN_DIR`, never the user's home.
+- Session sourced; doctor passes. The key-precedence cases use the direct
+  pattern because drive.sh pins the key, which would hide the thing under
+  test. They must set `FORJA_ENDPOINT` to the stub at
+  `http://127.0.0.1:$STUB_PORT`. The default endpoint is production, and
+  the stub is the only sanctioned target. Write scratch configs into
+  `$RUN_DIR`, never the user's home.
 
 - **File provides the key.** Write `$RUN_DIR/file.yaml` containing
-  `api_key: from-file`. Direct pattern with all four `FORJA_*` unset
-  (`env -u FORJA_API_KEY -u FORJA_ENDPOINT -u FORJA_TEAM -u FORJA_FORMAT ...`)
+  `api_key: from-file`. Direct pattern with `FORJA_API_KEY`, `FORJA_TEAM`,
+  and `FORJA_FORMAT` unset, `FORJA_ENDPOINT=http://127.0.0.1:$STUB_PORT`,
   and `--config "$RUN_DIR/file.yaml" whoami`. The stub accepts only
   `forja-verify-key`, so the CLI exits `1` with
   `forja: Unauthenticated. (HTTP 401)`. The precedence proof is the request:
