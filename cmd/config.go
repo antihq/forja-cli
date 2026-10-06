@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	defaultEndpoint = "http://127.0.0.1:8000"
+	defaultEndpoint = "https://forja.antihq.com"
 	defaultFormat   = "table"
 )
 

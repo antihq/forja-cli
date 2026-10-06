@@ -81,11 +81,11 @@ forja reads four settings. the config file is the base, environment variables ov
 | setting | environment variable | flag | default |
 | --- | --- | --- | --- |
 | `api_key` | `FORJA_API_KEY` | `--api-key` | none |
-| `endpoint` | `FORJA_ENDPOINT` | `--endpoint` | `http://127.0.0.1:8000` |
+| `endpoint` | `FORJA_ENDPOINT` | `--endpoint` | `https://forja.antihq.com` |
 | `team` | `FORJA_TEAM` | `--team` | your personal team |
 | `format` | `FORJA_FORMAT` | `--format` | `table` |
 
-each setting name is its key in `~/.forja.yaml`. a missing config file is fine. a malformed one stops the command with an error. `--config <path>` reads another file. `api_key` is the only setting with no default, and every command that talks to the api needs it.
+each setting name is its key in `~/.forja.yaml`. a missing config file is fine. a malformed one stops the command with an error. `--config <path>` reads another file. `api_key` is the only setting with no default, and every command that talks to the api needs it. the endpoint default is the production instance. to work against a local server, set `FORJA_ENDPOINT`, `endpoint` in the config file, or `--endpoint`.
 
 ## for agents
 
