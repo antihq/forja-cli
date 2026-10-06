@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"sort"
 	"strings"
 	"time"
 )
@@ -86,6 +87,9 @@ func (c *client) call(method, path string, query url.Values, payload any) (json.
 			if text, ok := object["message"].(string); ok && text != "" {
 				message = text
 			}
+			if failures, ok := object["errors"].(map[string]any); ok {
+				message += flattenFailures(failures)
+			}
 		}
 		if message == "" {
 			message = "unknown error"
@@ -104,6 +108,44 @@ func (c *client) call(method, path string, query url.Values, payload any) (json.
 	}
 
 	return raw, nil
+}
+
+// flattenFailures appends a validation error object to a message as
+// "field: first-message" segments, fields sorted alphabetically, so one
+// line still names every field the server rejected.
+func flattenFailures(failures map[string]any) string {
+	fields := make([]string, 0, len(failures))
+	for field := range failures {
+		fields = append(fields, field)
+	}
+	sort.Strings(fields)
+
+	var pairs []string
+	for _, field := range fields {
+		if text := firstMessage(failures[field]); text != "" {
+			pairs = append(pairs, field+": "+text)
+		}
+	}
+	if len(pairs) == 0 {
+		return ""
+	}
+
+	return "; " + strings.Join(pairs, "; ")
+}
+
+func firstMessage(value any) string {
+	switch typed := value.(type) {
+	case string:
+		return typed
+	case []any:
+		for _, item := range typed {
+			if text, ok := item.(string); ok && text != "" {
+				return text
+			}
+		}
+	}
+
+	return ""
 }
 
 // unwrapData strips a top level {"data": ...} envelope, returning the inner

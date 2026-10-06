@@ -25,13 +25,19 @@ type runtime struct {
 }
 
 // run resolves settings, performs one API call, and renders the response.
-func (rt *runtime) run(cmd *cobra.Command, method, path string, query map[string]string) error {
+// An optional payload argument makes the call a request with a JSON body.
+func (rt *runtime) run(cmd *cobra.Command, method, path string, query map[string]string, payload ...any) error {
 	resolved, api, err := currentSettings(cmd.Root())
 	if err != nil {
 		return err
 	}
 
-	raw, err := api.call(method, path, queryString(query), nil)
+	var body any
+	if len(payload) > 0 {
+		body = payload[0]
+	}
+
+	raw, err := api.call(method, path, queryString(query), body)
 	if err != nil {
 		return err
 	}

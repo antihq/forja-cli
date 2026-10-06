@@ -37,9 +37,25 @@ forja servers list --endpoint https://forja.example.com
 forja whoami --format json | jq -r '.teams[].name'
 ```
 
+### Create a site and ship it
+
+Create the site with a deploy key, register the key on GitHub as read-only, then start the first deploy. The key first: a clone before GitHub knows it fails, and the failed deployment emails you about it.
+
+```bash
+forja servers get srv-01 --format json        # read php_versions
+forja sites create --server srv-01 --address soplon.antihq.com \
+  --php-version php85 --type laravel \
+  --repository git@github.com:antihq/soplon.git --branch main \
+  --deploy-key --format json                  # deploy_key_public, no deployment
+# register deploy_key_public on the repository as a deploy key
+forja sites deploy <site-id>                  # pending deployment
+forja deployments get <dep-id>                # poll until finished
+curl -fsS https://soplon.antihq.com           # the actual proof
+```
+
 ## The pitfalls
 
-- **`sites deploy` fires with no confirmation.** The command POSTs at once, against whatever endpoint the file, the environment, and the flags resolve to. Check `--endpoint` or your config before you script it.
+- **`sites create` and `sites deploy` fire with no confirmation.** Both POST at once, against whatever endpoint the file, the environment, and the flags resolve to. Check `--endpoint` or your config before you script them.
 - **The API key is shown once.** Forja displays it under Settings > API when you generate it. Regenerating invalidates the old key.
 - **Tables hide columns.** A table prints only the first 6 keys of the first row and drops the rest. Use `--format json` when a response has more keys.
 - **Environment variables leak into one-off commands.** An exported `FORJA_FORMAT` or `FORJA_ENDPOINT` shapes every call in that shell. A flag wins, but only for the call you pass it to. `--config` swaps the whole file.

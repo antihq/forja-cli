@@ -13,16 +13,18 @@ entry point is incomplete when the feature file lists others.
   (`./forja`, `./forja-cli`).
 - Never point the CLI at the default endpoint `https://forja.antihq.com` or
   any instance this run did not start. The default is production when no env
-  var, config file, or flag sets an endpoint, and `sites deploy` triggers a
-  real deployment.
+  var, config file, or flag sets an endpoint, and `sites create` and
+  `sites deploy` change real state there.
 - The stub requires `Authorization: Bearer forja-verify-key` and logs every
   request (method, path, query, authorization, team, body) to `$STUB_LOG`.
 - Fixtures (per session, in-memory): servers `srv-01` (web-1), `srv-02`
   (db-1); sites `site-01` (acme.com, srv-01), `site-02` (staging.acme.com,
   srv-01), `site-03` (intranet.corp, srv-02); deployments `dep-100`
   (site-01, success, commit a1b2c3) and `dep-105` (site-03, pending, null
-  commit). First deploy of a session creates `dep-200`, then `dep-201`, ...
-  visible to later reads.
+  commit). The first `sites create` of a session creates `site-04`, then
+  `site-05`, ... Created deployments and deploys draw from one counter:
+  the first of either is `dep-200`, then `dep-201`, ... visible to later
+  reads.
 
 ## Driving conventions
 
@@ -49,6 +51,6 @@ entry point is incomplete when the feature file lists others.
 
 - [whoami](./whoami.md) — credential check, identity, teams, team header, auth failure.
 - [Servers](./servers.md) — list, get, missing server, JSON format.
-- [Sites](./sites.md) — list, server filter, get, deploy (the only mutation), empty state.
+- [Sites](./sites.md) — list, server filter, get, create, deploy, empty state.
 - [Deployments](./deployments.md) — list per site, `--site` requirement, get, empty and null states.
 - [Config and errors](./config-and-errors.md) — file/env/flag precedence, key errors, format validation, HTTP error mapping.
