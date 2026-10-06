@@ -84,6 +84,8 @@ func TestCallMapsErrorMessages(t *testing.T) {
 	}{
 		"401": {401, `{"message":"Unauthenticated."}`, "Unauthenticated. (HTTP 401)"},
 		"422": {422, `{"message":"Ya hay un deploy en curso."}`, "Ya hay un deploy en curso. (HTTP 422)"},
+		"422 with errors": {422, `{"message":"El campo address ya ha sido tomado. (and 1 more error)","errors":{"repository_branch":["El campo repository branch es obligatorio."],"address":["El campo address ya ha sido tomado."]}}`,
+			"El campo address ya ha sido tomado. (and 1 more error); address: El campo address ya ha sido tomado.; repository_branch: El campo repository branch es obligatorio. (HTTP 422)"},
 		"500": {500, `boom`, "boom (HTTP 500)"},
 		"501": {501, ``, "unknown error (HTTP 501)"},
 	}
