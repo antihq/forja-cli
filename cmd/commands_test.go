@@ -15,9 +15,14 @@ import (
 
 func runCLI(t *testing.T, args ...string) (string, error) {
 	t.Helper()
+	return runCLIStdin(t, "", args...)
+}
+
+func runCLIStdin(t *testing.T, input string, args ...string) (string, error) {
+	t.Helper()
 
 	var out, errOut bytes.Buffer
-	root := newRootCLI(&out, &errOut)
+	root := newRootCLI(&out, &errOut, strings.NewReader(input))
 	root.SetArgs(args)
 	err := root.Execute()
 

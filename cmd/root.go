@@ -22,6 +22,7 @@ var (
 type runtime struct {
 	stdout io.Writer
 	stderr io.Writer
+	stdin  io.Reader
 }
 
 // run resolves settings, performs one API call, and renders the response.
@@ -82,8 +83,8 @@ func flagOverrides(root *cobra.Command) map[string]*string {
 	return overrides
 }
 
-func newRootCLI(out, errOut io.Writer) *cobra.Command {
-	rt := &runtime{stdout: out, stderr: errOut}
+func newRootCLI(out, errOut io.Writer, stdin io.Reader) *cobra.Command {
+	rt := &runtime{stdout: out, stderr: errOut, stdin: stdin}
 
 	root := &cobra.Command{
 		Use:   "forja",
@@ -140,7 +141,7 @@ func newVersionCommand() *cobra.Command {
 }
 
 func Execute() {
-	root := newRootCLI(os.Stdout, os.Stderr)
+	root := newRootCLI(os.Stdout, os.Stderr, os.Stdin)
 	if err := root.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, "forja:", err)
 		os.Exit(1)
